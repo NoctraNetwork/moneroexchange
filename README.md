@@ -54,8 +54,8 @@ A production-ready, no-JavaScript peer-to-peer Monero (XMR) exchange platform wi
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url> noctra
-   cd noctra
+   git clone https://github.com/NoctraNetwork/moneroexchange.git moneroexchange
+   cd moneroexchange
    ```
 
 2. **Install dependencies**
@@ -88,7 +88,7 @@ A production-ready, no-JavaScript peer-to-peer Monero (XMR) exchange platform wi
 
 ### Production Installation
 
-For production deployment, see the comprehensive [Installation Guide](docs/INSTALL.md).
+For production deployment, see the comprehensive [Installation Guide](INSTALLATION_GUIDE.md).
 
 ## Configuration
 

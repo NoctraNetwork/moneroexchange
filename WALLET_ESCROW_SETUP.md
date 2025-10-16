@@ -13,8 +13,8 @@ Copy the following variables to your `.env` file:
 DB_CONNECTION=pgsql
 DB_HOST=localhost
 DB_PORT=5432
-DB_DATABASE=noctra
-DB_USERNAME=noctrared
+DB_DATABASE=moneroexchange
+DB_USERNAME=moneroexchange
 DB_PASSWORD=Walnutdesk88?
 
 # Session Configuration
@@ -179,7 +179,7 @@ Add to your crontab:
 
 ```bash
 # Process escrow deposits every minute
-* * * * * cd /path/to/noctra && php artisan escrow:process-deposits
+* * * * * cd /path/to/moneroexchange && php artisan escrow:process-deposits
 
 # Or run manually
 php artisan escrow:process-deposits

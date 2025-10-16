@@ -1,5 +1,5 @@
 {
-    "name": "noctra/exchange",
+    "name": "noctranetwork/moneroexchange",
     "type": "project",
     "description": "Production-ready peer-to-peer Monero exchange with no JavaScript",
     "keywords": ["monero", "exchange", "p2p", "escrow", "tor"],

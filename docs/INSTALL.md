@@ -92,9 +92,9 @@ sudo mysql -u root -p
 ```
 
 ```sql
-CREATE DATABASE noctra CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'noctrared'@'localhost' IDENTIFIED BY 'Walnutdesk88?';
-GRANT ALL PRIVILEGES ON noctra.* TO 'noctrared'@'localhost';
+CREATE DATABASE moneroexchange CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'moneroexchange'@'localhost' IDENTIFIED BY 'Walnutdesk88?';
+GRANT ALL PRIVILEGES ON moneroexchange.* TO 'moneroexchange'@'localhost';
 FLUSH PRIVILEGES;
 EXIT;
 ```
@@ -105,9 +105,9 @@ EXIT;
 
 ```bash
 cd /var/www
-sudo git clone <repository-url> noctra
-cd noctra
-sudo chown -R www-data:www-data /var/www/noctra
+sudo git clone https://github.com/NoctraNetwork/moneroexchange.git moneroexchange
+cd moneroexchange
+sudo chown -R www-data:www-data /var/www/moneroexchange
 sudo -u www-data composer install --no-dev --optimize-autoloader
 ```
 
@@ -126,8 +126,8 @@ APP_ENV=production
 APP_DEBUG=false
 APP_URL=https://yourdomain.com
 
-DB_DATABASE=noctra
-DB_USERNAME=noctrared
+DB_DATABASE=moneroexchange
+DB_USERNAME=moneroexchange
 DB_PASSWORD=Walnutdesk88?
 
 MONEROD_URL=http://127.0.0.1:18081
@@ -170,7 +170,7 @@ sudo -u www-data npm run build
 ### Create Escrow Wallet
 
 ```bash
-sudo -u www-data monero-wallet-rpc --daemon-address 127.0.0.1:18081 --rpc-bind-ip 127.0.0.1 --rpc-bind-port 18083 --wallet-file /var/www/noctra/storage/wallets/escrow_wallet --password "your_secure_password" --daemon-login "your_daemon_user:your_daemon_pass"
+sudo -u www-data monero-wallet-rpc --daemon-address 127.0.0.1:18081 --rpc-bind-ip 127.0.0.1 --rpc-bind-port 18083 --wallet-file /var/www/moneroexchange/storage/wallets/escrow_wallet --password "your_secure_password" --daemon-login "your_daemon_user:your_daemon_pass"
 ```
 
 **Important**: Store the wallet seed phrase securely offline!
@@ -180,14 +180,14 @@ sudo -u www-data monero-wallet-rpc --daemon-address 127.0.0.1:18081 --rpc-bind-i
 ### Create Site Configuration
 
 ```bash
-sudo nano /etc/nginx/sites-available/noctra
+sudo nano /etc/nginx/sites-available/moneroexchange
 ```
 
 ```nginx
 server {
     listen 80;
     server_name yourdomain.com;
-    root /var/www/noctra/public;
+    root /var/www/moneroexchange/public;
     index index.php;
 
     # Security headers
@@ -222,7 +222,7 @@ server {
 ### Enable Site
 
 ```bash
-sudo ln -s /etc/nginx/sites-available/noctra /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/moneroexchange /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl reload nginx
 ```
@@ -268,7 +268,7 @@ Requires=monerod.service
 Type=simple
 User=www-data
 Group=www-data
-ExecStart=/usr/bin/monero-wallet-rpc --daemon-address 127.0.0.1:18081 --rpc-bind-ip 127.0.0.1 --rpc-bind-port 18083 --wallet-file /var/www/noctra/storage/wallets/escrow_wallet --password "your_secure_password" --daemon-login "your_daemon_user:your_daemon_pass"
+ExecStart=/usr/bin/monero-wallet-rpc --daemon-address 127.0.0.1:18081 --rpc-bind-ip 127.0.0.1 --rpc-bind-port 18083 --wallet-file /var/www/moneroexchange/storage/wallets/escrow_wallet --password "your_secure_password" --daemon-login "your_daemon_user:your_daemon_pass"
 Restart=always
 RestartSec=10
 
@@ -296,13 +296,13 @@ Add these lines:
 
 ```cron
 # Monero transaction scanning
-*/5 * * * * cd /var/www/noctra && sudo -u www-data php artisan xmr:scan
+*/5 * * * * cd /var/www/moneroexchange && sudo -u www-data php artisan xmr:scan
 
 # Health checks
-*/10 * * * * cd /var/www/noctra && sudo -u www-data php artisan xmr:health
+*/10 * * * * cd /var/www/moneroexchange && sudo -u www-data php artisan xmr:health
 
 # Reprice floating offers
-*/15 * * * * cd /var/www/noctra && sudo -u www-data php artisan offers:reprice
+*/15 * * * * cd /var/www/moneroexchange && sudo -u www-data php artisan offers:reprice
 ```
 
 ## 10. SSL Certificate (Production)
@@ -346,7 +346,7 @@ curl -I https://yourdomain.com
 
 ```bash
 sudo tail -f /var/log/nginx/error.log
-sudo tail -f /var/www/noctra/storage/logs/laravel.log
+sudo tail -f /var/www/moneroexchange/storage/logs/laravel.log
 ```
 
 ## 13. Security Hardening
@@ -369,20 +369,20 @@ sudo systemctl enable fail2ban
 Create a backup script:
 
 ```bash
-sudo nano /usr/local/bin/backup-noctra.sh
+sudo nano /usr/local/bin/backup-moneroexchange.sh
 ```
 
 ```bash
 #!/bin/bash
 DATE=$(date +%Y%m%d_%H%M%S)
-BACKUP_DIR="/var/backups/noctra"
+BACKUP_DIR="/var/backups/moneroexchange"
 mkdir -p $BACKUP_DIR
 
 # Database backup
-mysqldump -u noctrared -p'Walnutdesk88?' noctra > $BACKUP_DIR/noctra_$DATE.sql
+mysqldump -u moneroexchange -p'Walnutdesk88?' moneroexchange > $BACKUP_DIR/moneroexchange_$DATE.sql
 
 # Application backup
-tar -czf $BACKUP_DIR/noctra_app_$DATE.tar.gz /var/www/noctra
+tar -czf $BACKUP_DIR/moneroexchange_app_$DATE.tar.gz /var/www/moneroexchange
 
 # Cleanup old backups (keep 30 days)
 find $BACKUP_DIR -name "*.sql" -mtime +30 -delete
@@ -390,14 +390,14 @@ find $BACKUP_DIR -name "*.tar.gz" -mtime +30 -delete
 ```
 
 ```bash
-sudo chmod +x /usr/local/bin/backup-noctra.sh
+sudo chmod +x /usr/local/bin/backup-moneroexchange.sh
 ```
 
 Add to crontab:
 
 ```cron
 # Daily backup at 2 AM
-0 2 * * * /usr/local/bin/backup-noctra.sh
+0 2 * * * /usr/local/bin/backup-moneroexchange.sh
 ```
 
 ## Troubleshooting
@@ -411,7 +411,7 @@ Add to crontab:
 
 ### Log Locations
 
-- Application: `/var/www/noctra/storage/logs/laravel.log`
+- Application: `/var/www/moneroexchange/storage/logs/laravel.log`
 - Nginx: `/var/log/nginx/error.log`
 - Monero: Check with `journalctl -u monerod` and `journalctl -u monero-wallet-rpc`
 

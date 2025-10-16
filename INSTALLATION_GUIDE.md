@@ -439,7 +439,7 @@ pm.max_requests = 1000
 
 ; Security
 php_admin_value[disable_functions] = exec,passthru,shell_exec,system,proc_open,popen,curl_exec,curl_multi_exec,parse_ini_file,show_source
-php_admin_value[open_basedir] = /var/www/noctra
+php_admin_value[open_basedir] = /var/www/moneroexchange
 ```
 
 ### 3. Configure PHP Settings
@@ -628,7 +628,7 @@ sudo chown moneroexchange:moneroexchange /var/www
 
 # Clone Monero Exchange repository
 cd /var/www
-git clone <your-repository-url> moneroexchange
+git clone https://github.com/NoctraNetwork/moneroexchange.git moneroexchange
 cd moneroexchange
 
 # Install PHP dependencies
@@ -837,7 +837,7 @@ Port 2222
 X11Forwarding no
 
 # Limit users
-AllowUsers noctra
+AllowUsers moneroexchange
 ```
 
 ```bash
@@ -882,7 +882,7 @@ sudo certbot renew --dry-run
 
 ```bash
 # Edit Nginx configuration
-sudo nano /etc/nginx/sites-available/noctra
+sudo nano /etc/nginx/sites-available/moneroexchange
 ```
 
 Update the configuration to include HTTPS:
@@ -939,24 +939,24 @@ server {
 
 ```bash
 # Create log directories
-sudo mkdir -p /var/log/noctra
-sudo chown noctra:noctra /var/log/noctra
+sudo mkdir -p /var/log/moneroexchange
+sudo chown moneroexchange:moneroexchange /var/log/moneroexchange
 
 # Create log rotation configuration
-sudo nano /etc/logrotate.d/noctra
+sudo nano /etc/logrotate.d/moneroexchange
 ```
 
 Add this configuration:
 
 ```
-/var/log/noctra/*.log {
+/var/log/moneroexchange/*.log {
     daily
     missingok
     rotate 30
     compress
     delaycompress
     notifempty
-    create 644 noctra noctra
+    create 644 moneroexchange moneroexchange
 }
 ```
 
@@ -967,7 +967,7 @@ Add this configuration:
 sudo apt install -y htop iotop nethogs
 
 # Create monitoring script
-sudo nano /usr/local/bin/noctra-monitor.sh
+sudo nano /usr/local/bin/moneroexchange-monitor.sh
 ```
 
 Add this monitoring script:
@@ -998,19 +998,19 @@ curl -s http://127.0.0.1:18081/json_rpc -d '{"jsonrpc":"2.0","id":"0","method":"
 
 echo ""
 echo "=== Monero Exchange Logs (last 10 lines) ==="
-tail -10 /var/log/noctra/*.log 2>/dev/null || echo "No logs found"
+tail -10 /var/log/moneroexchange/*.log 2>/dev/null || echo "No logs found"
 ```
 
 ```bash
 # Make script executable
-sudo chmod +x /usr/local/bin/noctra-monitor.sh
+sudo chmod +x /usr/local/bin/moneroexchange-monitor.sh
 ```
 
 ### 3. Create Backup Script
 
 ```bash
 # Create backup script
-sudo nano /usr/local/bin/noctra-backup.sh
+sudo nano /usr/local/bin/moneroexchange-backup.sh
 ```
 
 Add this backup script:
@@ -1019,17 +1019,17 @@ Add this backup script:
 #!/bin/bash
 
 # Monero Exchange Backup Script
-BACKUP_DIR="/var/backups/noctra"
+BACKUP_DIR="/var/backups/moneroexchange"
 DATE=$(date +%Y%m%d_%H%M%S)
 
 # Create backup directory
 mkdir -p $BACKUP_DIR
 
 # Database backup
-mysqldump -u noctrared -p'Walnutdesk88?' noctra > $BACKUP_DIR/noctra_db_$DATE.sql
+mysqldump -u moneroexchange -p'Walnutdesk88?' moneroexchange > $BACKUP_DIR/moneroexchange_db_$DATE.sql
 
 # Application backup
-tar -czf $BACKUP_DIR/noctra_app_$DATE.tar.gz -C /var/www noctra
+tar -czf $BACKUP_DIR/moneroexchange_app_$DATE.tar.gz -C /var/www moneroexchange
 
 # Monero wallet backup
 cp /var/lib/monero/escrow_wallet* $BACKUP_DIR/
@@ -1044,10 +1044,10 @@ echo "Backup completed: $DATE"
 
 ```bash
 # Make script executable
-sudo chmod +x /usr/local/bin/noctra-backup.sh
+sudo chmod +x /usr/local/bin/moneroexchange-backup.sh
 
 # Add to crontab for daily backups
-echo "0 3 * * * /usr/local/bin/noctra-backup.sh" | sudo crontab -
+echo "0 3 * * * /usr/local/bin/moneroexchange-backup.sh" | sudo crontab -
 ```
 
 ## Testing and Verification
@@ -1059,7 +1059,7 @@ echo "0 3 * * * /usr/local/bin/noctra-backup.sh" | sudo crontab -
 sudo systemctl status nginx mysql redis-server php8.1-fpm monerod monero-wallet-rpc
 
 # Test database connection
-mysql -u noctrared -p'Walnutdesk88?' -e "SHOW DATABASES;"
+mysql -u moneroexchange -p'Walnutdesk88?' -e "SHOW DATABASES;"
 
 # Test Redis connection
 redis-cli -a your_redis_password_here ping
@@ -1075,7 +1075,7 @@ curl -s http://127.0.0.1:18083/json_rpc -d '{"jsonrpc":"2.0","id":"0","method":"
 
 ```bash
 # Test Laravel application
-cd /var/www/noctra
+cd /var/www/moneroexchange
 php artisan route:list
 php artisan config:cache
 php artisan route:cache
@@ -1101,7 +1101,7 @@ php artisan schedule:list
 
 ```bash
 # Test Monero commands
-cd /var/www/noctra
+cd /var/www/moneroexchange
 php artisan xmr:health
 php artisan xmr:scan
 ```
@@ -1112,10 +1112,10 @@ php artisan xmr:scan
 
 ```bash
 # Daily monitoring
-/usr/local/bin/noctra-monitor.sh
+/usr/local/bin/moneroexchange-monitor.sh
 
 # Weekly maintenance
-cd /var/www/noctra
+cd /var/www/moneroexchange
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
@@ -1129,7 +1129,7 @@ sudo apt update && sudo apt upgrade -y
 
 ```bash
 # Monitor application logs
-tail -f /var/log/noctra/*.log
+tail -f /var/log/moneroexchange/*.log
 
 # Monitor system logs
 sudo journalctl -u nginx -f
@@ -1146,7 +1146,7 @@ iotop
 nethogs
 
 # Monitor database performance
-mysql -u noctrared -p'Walnutdesk88?' -e "SHOW PROCESSLIST;"
+mysql -u moneroexchange -p'Walnutdesk88?' -e "SHOW PROCESSLIST;"
 ```
 
 ## Troubleshooting
