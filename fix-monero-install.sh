@@ -15,13 +15,13 @@ fi
 MONERO_VERSION="0.18.4.3"
 MONERO_DIR="/opt/monero"
 
-echo "📁 Creating proper directories with sudo..."
-sudo mkdir -p $MONERO_DIR
-sudo chmod 755 $MONERO_DIR
+echo "📁 Creating proper directories..."
+mkdir -p $MONERO_DIR
+chmod 755 $MONERO_DIR
 
 echo "📥 Downloading Monero with proper permissions..."
 cd /tmp
-sudo wget -O monero-linux-x64-v${MONERO_VERSION}.tar.bz2 https://downloads.getmonero.org/cli/monero-linux-x64-v${MONERO_VERSION}.tar.bz2
+wget -O monero-linux-x64-v${MONERO_VERSION}.tar.bz2 https://downloads.getmonero.org/cli/monero-linux-x64-v${MONERO_VERSION}.tar.bz2
 
 if [ $? -ne 0 ]; then
     echo "❌ Failed to download Monero"
@@ -29,7 +29,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "📦 Extracting Monero with proper permissions..."
-sudo tar -xjf monero-linux-x64-v${MONERO_VERSION}.tar.bz2
+tar -xjf monero-linux-x64-v${MONERO_VERSION}.tar.bz2
 
 if [ $? -ne 0 ]; then
     echo "❌ Failed to extract Monero"
@@ -37,34 +37,34 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "📋 Installing Monero binaries..."
-sudo cp monero-x86_64-linux-gnu-v${MONERO_VERSION}/monerod /usr/local/bin/
-sudo cp monero-x86_64-linux-gnu-v${MONERO_VERSION}/monero-wallet-rpc /usr/local/bin/
-sudo cp monero-x86_64-linux-gnu-v${MONERO_VERSION}/monero-wallet-cli /usr/local/bin/
+cp monero-x86_64-linux-gnu-v${MONERO_VERSION}/monerod /usr/local/bin/
+cp monero-x86_64-linux-gnu-v${MONERO_VERSION}/monero-wallet-rpc /usr/local/bin/
+cp monero-x86_64-linux-gnu-v${MONERO_VERSION}/monero-wallet-cli /usr/local/bin/
 
 # Set proper permissions
-sudo chmod +x /usr/local/bin/monerod
-sudo chmod +x /usr/local/bin/monero-wallet-rpc
-sudo chmod +x /usr/local/bin/monero-wallet-cli
+chmod +x /usr/local/bin/monerod
+chmod +x /usr/local/bin/monero-wallet-rpc
+chmod +x /usr/local/bin/monero-wallet-cli
 
 echo "👤 Creating monero user..."
-sudo groupadd -r monero 2>/dev/null || true
-sudo useradd -r -g monero -d $MONERO_DIR -s /bin/false monero 2>/dev/null || true
+groupadd -r monero 2>/dev/null || true
+useradd -r -g monero -d $MONERO_DIR -s /bin/false monero 2>/dev/null || true
 
 echo "📁 Creating data directories..."
-sudo mkdir -p /var/lib/monero
-sudo mkdir -p /var/log/monero
-sudo mkdir -p /etc/monero
-sudo mkdir -p /var/lib/monero/wallets
+mkdir -p /var/lib/monero
+mkdir -p /var/log/monero
+mkdir -p /etc/monero
+mkdir -p /var/lib/monero/wallets
 
 echo "🔐 Setting proper ownership..."
-sudo chown -R monero:monero $MONERO_DIR
-sudo chown -R monero:monero /var/lib/monero
-sudo chown -R monero:monero /var/log/monero
-sudo chown -R monero:monero /etc/monero
+chown -R monero:monero $MONERO_DIR
+chown -R monero:monero /var/lib/monero
+chown -R monero:monero /var/log/monero
+chown -R monero:monero /etc/monero
 
 echo "🧹 Cleaning up..."
-sudo rm -rf /tmp/monero-linux-x64-v${MONERO_VERSION}.tar.bz2
-sudo rm -rf /tmp/monero-x86_64-linux-gnu-v${MONERO_VERSION}
+rm -rf /tmp/monero-linux-x64-v${MONERO_VERSION}.tar.bz2
+rm -rf /tmp/monero-x86_64-linux-gnu-v${MONERO_VERSION}
 
 echo "✅ Monero installation fixed!"
 echo ""
