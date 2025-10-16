@@ -16,6 +16,8 @@ class User extends Authenticatable
 
     protected $fillable = [
         'username',
+        'email',
+        'email_verified_at',
         'password_hash',
         'pin_hash',
         'pin_attempts',
@@ -27,6 +29,7 @@ class User extends Authenticatable
         'is_tor_only',
         'is_admin',
         'status',
+        'remember_token',
     ];
 
     protected $hidden = [
@@ -35,6 +38,7 @@ class User extends Authenticatable
     ];
 
     protected $casts = [
+        'email_verified_at' => 'datetime',
         'pin_locked_until' => 'datetime',
         'pgp_verified_at' => 'datetime',
         'is_tor_only' => 'boolean',

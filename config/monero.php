@@ -90,9 +90,9 @@ return [
     |
     */
 
-    'rpc_timeout' => 30, // seconds
-    'rpc_retry_attempts' => 3,
-    'rpc_retry_delay' => 1, // seconds
+    'rpc_timeout' => 60, // seconds (increased for Tor)
+    'rpc_retry_attempts' => 5, // increased for Tor
+    'rpc_retry_delay' => 2, // seconds (increased for Tor)
 
     /*
     |--------------------------------------------------------------------------

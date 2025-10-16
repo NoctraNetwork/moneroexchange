@@ -21,7 +21,7 @@ return [
     |
     */
 
-    'hsts_enable' => env('HSTS_ENABLE', true),
+    'hsts_enable' => false, // Disabled for Tor/onion sites
     'hsts_max_age' => env('HSTS_MAX_AGE', 31536000), // 1 year
     'hsts_include_subdomains' => env('HSTS_INCLUDE_SUBDOMAINS', true),
     'hsts_preload' => env('HSTS_PRELOAD', false),

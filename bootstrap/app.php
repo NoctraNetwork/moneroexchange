@@ -11,13 +11,21 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Global middleware for all requests
         $middleware->web(append: [
             \App\Http\Middleware\CspHeadersMiddleware::class,
             \App\Http\Middleware\SecurityHeadersMiddleware::class,
+            \App\Http\Middleware\Laravel12SecurityMiddleware::class,
             \App\Http\Middleware\SecureSessionMiddleware::class,
             \App\Http\Middleware\CsrfProtectionMiddleware::class,
         ]);
+
+        // API middleware
+        $middleware->api(append: [
+            \App\Http\Middleware\SecurityHeadersMiddleware::class,
+        ]);
         
+        // Middleware aliases
         $middleware->alias([
             'pin.required' => \App\Http\Middleware\PinRequiredMiddleware::class,
             'rate.limit' => \App\Http\Middleware\RateLimitMiddleware::class,

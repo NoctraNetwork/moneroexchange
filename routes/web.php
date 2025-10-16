@@ -25,19 +25,9 @@ Route::get('/terms', [HomeController::class, 'terms'])->name('terms');
 Route::get('/privacy', [HomeController::class, 'privacy'])->name('privacy');
 Route::get('/security', [HomeController::class, 'security'])->name('security');
 
-// Authentication routes
-Route::middleware(['guest', 'rate.limit:login'])->group(function () {
-    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [AuthController::class, 'login']);
-});
-
-Route::middleware(['guest', 'rate.limit:register'])->group(function () {
-    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-    Route::post('/register', [AuthController::class, 'register']);
-});
-
+// Breeze Authentication routes (handled by BreezeServiceProvider)
+// PIN verification routes (custom)
 Route::middleware(['auth', 'rate.limit:pin'])->group(function () {
-    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/pin/verify', [AuthController::class, 'showPinVerify'])->name('pin.verify');
     Route::post('/pin/verify', [AuthController::class, 'verifyPin']);
     Route::get('/pin/locked', [AuthController::class, 'showPinLocked'])->name('pin.locked');
