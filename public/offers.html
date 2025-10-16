@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Browse Offers - Monero Exchange Exchange</title>
+    <meta name="description" content="Browse buy and sell offers for Monero (XMR) on Monero Exchange Exchange.">
+    
+    <!-- Tailwind CSS CDN for demo purposes -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        },
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        .btn-primary {
+            @apply inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500;
+        }
+        .btn-secondary {
+            @apply inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500;
+        }
+        .badge {
+            @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+        }
+        .badge-success {
+            @apply bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200;
+        }
+        .badge-warning {
+            @apply bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200;
+        }
+        .badge-danger {
+            @apply bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200;
+        }
+        .badge-info {
+            @apply bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200;
+        }
+        .badge-offer-buy {
+            @apply bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200;
+        }
+        .badge-offer-sell {
+            @apply bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200;
+        }
+    </style>
+</head>
+<body class="h-full bg-gray-50 dark:bg-gray-900">
+    <div class="min-h-full">
+        <!-- Navigation -->
+        <nav class="bg-white dark:bg-gray-800 shadow">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16">
+                    <div class="flex">
+                        <!-- Logo -->
+                        <div class="flex-shrink-0 flex items-center">
+                            <a href="index.html" class="text-xl font-bold text-gray-900 dark:text-white">
+                                Monero Exchange
+                            </a>
+                        </div>
+                        
+                        <!-- Navigation Links -->
+                        <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+                            <a href="index.html" class="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 hover:text-gray-700 dark:hover:text-gray-200 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                Home
+                            </a>
+                            <a href="offers.html" class="border-blue-500 text-blue-600 dark:text-blue-400 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                Offers
+                            </a>
+                            <a href="how-it-works.html" class="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 hover:text-gray-700 dark:hover:text-gray-200 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                How It Works
+                            </a>
+                            <a href="fees.html" class="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 hover:text-gray-700 dark:hover:text-gray-200 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                Fees
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Right side -->
+                    <div class="flex items-center">
+                        <div class="flex items-center space-x-4">
+                            <a href="login.html" class="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200">
+                                Login
+                            </a>
+                            <a href="register.html" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                                Register
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+            <div class="px-4 py-6 sm:px-0">
+                <!-- Header -->
+                <div class="md:flex md:items-center md:justify-between">
+                    <div class="flex-1 min-w-0">
+                        <h2 class="text-2xl font-bold leading-7 text-gray-900 dark:text-white sm:text-3xl sm:truncate">
+                            Browse Offers
+                        </h2>
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-300">
+                            Find the best Monero trading opportunities
+                        </p>
+                    </div>
+                    <div class="mt-4 flex md:mt-0 md:ml-4">
+                        <a href="create-offer.html" class="btn-primary">
+                            Create Offer
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="mt-8 bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Filters</h3>
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        <div>
+                            <label for="side" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Side</label>
+                            <select id="side" name="side" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                                <option value="">All</option>
+                                <option value="buy">Buy XMR</option>
+                                <option value="sell">Sell XMR</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="currency" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Currency</label>
+                            <select id="currency" name="currency" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                                <option value="">All</option>
+                                <option value="USD">USD</option>
+                                <option value="EUR">EUR</option>
+                                <option value="GBP">GBP</option>
+                                <option value="JPY">JPY</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="payment_method" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Payment Method</label>
+                            <select id="payment_method" name="payment_method" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                                <option value="">All</option>
+                                <option value="xmr">XMR (Monero)</option>
+                                <option value="btc">BTC (Bitcoin)</option>
+                                <option value="bank_transfer">Bank Transfer</option>
+                                <option value="paypal">PayPal</option>
+                                <option value="cashapp">CashApp</option>
+                                <option value="cash_inperson">Cash (In-Person)</option>
+                                <option value="cash_postal">Cash (Postal)</option>
+                                <option value="usdt">USDT (Tether)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="country" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Country</label>
+                            <select id="country" name="country" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                                <option value="">All</option>
+                                <option value="US">United States</option>
+                                <option value="GB">United Kingdom</option>
+                                <option value="DE">Germany</option>
+                                <option value="JP">Japan</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex justify-end">
+                        <button type="button" class="btn-secondary">
+                            Apply Filters
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Offers List -->
+                <div class="mt-8">
+                    <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md">
+                        <ul class="divide-y divide-gray-200 dark:divide-gray-700">
+                            <!-- Offer 1 -->
+                            <li>
+                                <div class="px-4 py-4 flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0">
+                                            <span class="badge badge-offer-sell">Sell</span>
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="flex items-center">
+                                                <p class="text-sm font-medium text-gray-900 dark:text-white">
+                                                    alice
+                                                </p>
+                                                <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                                    Verified
+                                                </span>
+                                            </div>
+                                            <p class="text-sm text-gray-500 dark:text-gray-300">
+                                                XMR (Monero) • Online • United States
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <div class="text-right">
+                                            <p class="text-lg font-medium text-gray-900 dark:text-white">
+                                                $150.00 USD
+                                            </p>
+                                            <p class="text-sm text-gray-500 dark:text-gray-300">
+                                                0.001 - 0.01 XMR
+                                            </p>
+                                        </div>
+                                        <div class="ml-4">
+                                            <a href="offer-details.html" class="btn-primary">
+                                                Trade
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+
+                            <!-- Offer 2 -->
+                            <li>
+                                <div class="px-4 py-4 flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0">
+                                            <span class="badge badge-offer-buy">Buy</span>
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="flex items-center">
+                                                <p class="text-sm font-medium text-gray-900 dark:text-white">
+                                                    bob
+                                                </p>
+                                                <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                                    Verified
+                                                </span>
+                                            </div>
+                                            <p class="text-sm text-gray-500 dark:text-gray-300">
+                                                BTC (Bitcoin) • Online • United Kingdom
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <div class="text-right">
+                                            <p class="text-lg font-medium text-gray-900 dark:text-white">
+                                                €140.00 EUR
+                                            </p>
+                                            <p class="text-sm text-gray-500 dark:text-gray-300">
+                                                0.005 - 0.05 XMR
+                                            </p>
+                                        </div>
+                                        <div class="ml-4">
+                                            <a href="offer-details.html" class="btn-primary">
+                                                Trade
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+
+                            <!-- Offer 3 -->
+                            <li>
+                                <div class="px-4 py-4 flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0">
+                                            <span class="badge badge-offer-sell">Sell</span>
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="flex items-center">
+                                                <p class="text-sm font-medium text-gray-900 dark:text-white">
+                                                    charlie
+                                                </p>
+                                                <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                                                    New User
+                                                </span>
+                                            </div>
+                                            <p class="text-sm text-gray-500 dark:text-gray-300">
+                                                CashApp • Online • Germany
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <div class="text-right">
+                                            <p class="text-lg font-medium text-gray-900 dark:text-white">
+                                                £120.00 GBP
+                                            </p>
+                                            <p class="text-sm text-gray-500 dark:text-gray-300">
+                                                0.002 - 0.02 XMR
+                                            </p>
+                                        </div>
+                                        <div class="ml-4">
+                                            <a href="offer-details.html" class="btn-primary">
+                                                Trade
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+
+                            <!-- Offer 4 -->
+                            <li>
+                                <div class="px-4 py-4 flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0">
+                                            <span class="badge badge-offer-buy">Buy</span>
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="flex items-center">
+                                                <p class="text-sm font-medium text-gray-900 dark:text-white">
+                                                    diana
+                                                </p>
+                                                <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                                    Verified
+                                                </span>
+                                            </div>
+                                            <p class="text-sm text-gray-500 dark:text-gray-300">
+                                                USDT (Tether) • Online • Japan
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <div class="text-right">
+                                            <p class="text-lg font-medium text-gray-900 dark:text-white">
+                                                ¥22,000 JPY
+                                            </p>
+                                            <p class="text-sm text-gray-500 dark:text-gray-300">
+                                                0.01 - 0.1 XMR
+                                            </p>
+                                        </div>
+                                        <div class="ml-4">
+                                            <a href="offer-details.html" class="btn-primary">
+                                                Trade
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+
+                            <!-- Offer 5 -->
+                            <li>
+                                <div class="px-4 py-4 flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0">
+                                            <span class="badge badge-offer-sell">Sell</span>
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="flex items-center">
+                                                <p class="text-sm font-medium text-gray-900 dark:text-white">
+                                                    eve
+                                                </p>
+                                                <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                                    Verified
+                                                </span>
+                                            </div>
+                                            <p class="text-sm text-gray-500 dark:text-gray-300">
+                                                Cash (Postal) • In-Person • Global
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <div class="text-right">
+                                            <p class="text-lg font-medium text-gray-900 dark:text-white">
+                                                $148.50 USD
+                                            </p>
+                                            <p class="text-sm text-gray-500 dark:text-gray-300">
+                                                0.001 - 0.1 XMR
+                                            </p>
+                                        </div>
+                                        <div class="ml-4">
+                                            <a href="offer-details.html" class="btn-primary">
+                                                Trade
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="mt-8 flex items-center justify-between">
+                        <div class="flex-1 flex justify-between sm:hidden">
+                            <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700">
+                                Previous
+                            </a>
+                            <a href="#" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700">
+                                Next
+                            </a>
+                        </div>
+                        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                            <div>
+                                <p class="text-sm text-gray-700 dark:text-gray-300">
+                                    Showing <span class="font-medium">1</span> to <span class="font-medium">5</span> of <span class="font-medium">89</span> results
+                                </p>
+                            </div>
+                            <div>
+                                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                    <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700">
+                                        <span class="sr-only">Previous</span>
+                                        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                        </svg>
+                                    </a>
+                                    <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700">
+                                        1
+                                    </a>
+                                    <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700">
+                                        2
+                                    </a>
+                                    <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700">
+                                        3
+                                    </a>
+                                    <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700">
+                                        <span class="sr-only">Next</span>
+                                        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                        </svg>
+                                    </a>
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+            <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">Exchange</h3>
+                        <ul class="mt-4 space-y-4">
+                            <li><a href="offers.html" class="text-base text-gray-500 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">Browse Offers</a></li>
+                            <li><a href="how-it-works.html" class="text-base text-gray-500 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">How It Works</a></li>
+                            <li><a href="fees.html" class="text-base text-gray-500 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">Fees</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">Legal</h3>
+                        <ul class="mt-4 space-y-4">
+                            <li><a href="terms.html" class="text-base text-gray-500 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">Terms of Service</a></li>
+                            <li><a href="privacy.html" class="text-base text-gray-500 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">Privacy Policy</a></li>
+                            <li><a href="security.html" class="text-base text-gray-500 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">Security</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">Support</h3>
+                        <ul class="mt-4 space-y-4">
+                            <li><a href="#" class="text-base text-gray-500 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">Help Center</a></li>
+                            <li><a href="#" class="text-base text-gray-500 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">Contact Us</a></li>
+                            <li><a href="#" class="text-base text-gray-500 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">Status</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">About</h3>
+                        <ul class="mt-4 space-y-4">
+                            <li><a href="#" class="text-base text-gray-500 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">About Monero Exchange</a></li>
+                            <li><a href="#" class="text-base text-gray-500 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">API Documentation</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="mt-8 border-t border-gray-200 dark:border-gray-700 pt-8">
+                    <p class="text-base text-gray-400 text-center">
+                        &copy; 2024 Monero Exchange Exchange. All rights reserved.
+                    </p>
+                </div>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

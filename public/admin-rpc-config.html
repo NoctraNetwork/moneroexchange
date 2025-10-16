@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>RPC Configuration - Monero Exchange Exchange Admin</title>
+    <meta name="description" content="Configure Monero RPC settings for Monero Exchange Exchange.">
+    
+    <!-- Tailwind CSS CDN for demo purposes -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        },
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        .btn-primary {
+            @apply inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500;
+        }
+        .btn-secondary {
+            @apply inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500;
+        }
+    </style>
+</head>
+<body class="h-full bg-gray-50 dark:bg-gray-900">
+    <div class="min-h-full">
+        <!-- Navigation -->
+        <nav class="bg-white dark:bg-gray-800 shadow">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16">
+                    <div class="flex">
+                        <!-- Logo -->
+                        <div class="flex-shrink-0 flex items-center">
+                            <a href="index.html" class="text-xl font-bold text-gray-900 dark:text-white">
+                                Monero Exchange Admin
+                            </a>
+                        </div>
+                        
+                        <!-- Navigation Links -->
+                        <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+                            <a href="index.html" class="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 hover:text-gray-700 dark:hover:text-gray-200 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                Public Site
+                            </a>
+                            <a href="admin-dashboard.html" class="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 hover:text-gray-700 dark:hover:text-gray-200 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                Dashboard
+                            </a>
+                            <a href="admin-rpc-config.html" class="border-blue-500 text-blue-600 dark:text-blue-400 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                RPC Config
+                            </a>
+                            <a href="admin-settings.html" class="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 hover:text-gray-700 dark:hover:text-gray-200 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                Settings
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Right side -->
+                    <div class="flex items-center">
+                        <div class="flex items-center space-x-4">
+                            <span class="text-gray-500 dark:text-gray-300">Admin User</span>
+                            <a href="login.html" class="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200">
+                                Logout
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+            <div class="px-4 py-6 sm:px-0">
+                <!-- Header -->
+                <div class="md:flex md:items-center md:justify-between">
+                    <div class="flex-1 min-w-0">
+                        <h2 class="text-2xl font-bold leading-7 text-gray-900 dark:text-white sm:text-3xl sm:truncate">
+                            RPC Configuration
+                        </h2>
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-300">
+                            Configure Monero RPC and Wallet RPC settings
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Configuration Form -->
+                <div class="mt-8">
+                    <form class="space-y-8">
+                        <!-- Monero RPC Settings -->
+                        <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+                            <div class="px-4 py-5 sm:p-6">
+                                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                                    Monero RPC (monerod) Settings
+                                </h3>
+                                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                    <div>
+                                        <label for="monero_rpc_host" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Host
+                                        </label>
+                                        <input type="text" name="monero_rpc_host" id="monero_rpc_host" 
+                                               value="localhost"
+                                               class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                    </div>
+                                    <div>
+                                        <label for="monero_rpc_port" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Port
+                                        </label>
+                                        <input type="number" name="monero_rpc_port" id="monero_rpc_port" 
+                                               value="18081"
+                                               class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                    </div>
+                                    <div>
+                                        <label for="monero_rpc_username" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Username
+                                        </label>
+                                        <input type="text" name="monero_rpc_username" id="monero_rpc_username" 
+                                               value=""
+                                               class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                    </div>
+                                    <div>
+                                        <label for="monero_rpc_password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Password
+                                        </label>
+                                        <input type="password" name="monero_rpc_password" id="monero_rpc_password" 
+                                               value=""
+                                               class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                    </div>
+                                    <div class="sm:col-span-2">
+                                        <div class="flex items-center">
+                                            <input type="checkbox" name="monero_rpc_ssl" id="monero_rpc_ssl" value="1"
+                                                   class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded">
+                                            <label for="monero_rpc_ssl" class="ml-2 block text-sm text-gray-900 dark:text-gray-300">
+                                                Use SSL/TLS
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Wallet RPC Settings -->
+                        <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+                            <div class="px-4 py-5 sm:p-6">
+                                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                                    Wallet RPC (monero-wallet-rpc) Settings
+                                </h3>
+                                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                    <div>
+                                        <label for="monero_wallet_rpc_host" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Host
+                                        </label>
+                                        <input type="text" name="monero_wallet_rpc_host" id="monero_wallet_rpc_host" 
+                                               value="localhost"
+                                               class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                    </div>
+                                    <div>
+                                        <label for="monero_wallet_rpc_port" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Port
+                                        </label>
+                                        <input type="number" name="monero_wallet_rpc_port" id="monero_wallet_rpc_port" 
+                                               value="18083"
+                                               class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                    </div>
+                                    <div>
+                                        <label for="monero_wallet_rpc_username" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Username
+                                        </label>
+                                        <input type="text" name="monero_wallet_rpc_username" id="monero_wallet_rpc_username" 
+                                               value=""
+                                               class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                    </div>
+                                    <div>
+                                        <label for="monero_wallet_rpc_password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Password
+                                        </label>
+                                        <input type="password" name="monero_wallet_rpc_password" id="monero_wallet_rpc_password" 
+                                               value=""
+                                               class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                    </div>
+                                    <div class="sm:col-span-2">
+                                        <div class="flex items-center">
+                                            <input type="checkbox" name="monero_wallet_rpc_ssl" id="monero_wallet_rpc_ssl" value="1"
+                                                   class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded">
+                                            <label for="monero_wallet_rpc_ssl" class="ml-2 block text-sm text-gray-900 dark:text-gray-300">
+                                                Use SSL/TLS
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Test Connection -->
+                        <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+                            <div class="px-4 py-5 sm:p-6">
+                                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                                    Test Connection
+                                </h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-300 mb-4">
+                                    Test the RPC connection to ensure it's working properly.
+                                </p>
+                                <button type="button" id="test-connection" 
+                                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                    Test Connection
+                                </button>
+                                <div id="test-result" class="mt-4 hidden">
+                                    <div class="rounded-md p-4">
+                                        <div class="flex">
+                                            <div class="flex-shrink-0">
+                                                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                                </svg>
+                                            </div>
+                                            <div class="ml-3">
+                                                <h3 class="text-sm font-medium text-green-800 dark:text-green-200">
+                                                    Connection Successful
+                                                </h3>
+                                                <div class="mt-2 text-sm text-green-700 dark:text-green-300">
+                                                    <p id="test-message">RPC connection is working properly.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Save Button -->
+                        <div class="flex justify-end">
+                            <button type="submit" 
+                                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                Save Configuration
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+            <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">Exchange</h3>
+                        <ul class="mt-4 space-y-4">
+                            <li><a href="offers.html" class="text-base text-gray-500 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">Browse Offers</a></li>
+                            <li><a href="how-it-works.html" class="text-base text-gray-500 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">How It Works</a></li>
+                            <li><a href="fees.html" class="text-base text-gray-500 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">Fees</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">Legal</h3>
+                        <ul class="mt-4 space-y-4">
+                            <li><a href="terms.html" class="text-base text-gray-500 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">Terms of Service</a></li>
+                            <li><a href="privacy.html" class="text-base text-gray-500 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">Privacy Policy</a></li>
+                            <li><a href="security.html" class="text-base text-gray-500 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">Security</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">Support</h3>
+                        <ul class="mt-4 space-y-4">
+                            <li><a href="#" class="text-base text-gray-500 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">Help Center</a></li>
+                            <li><a href="#" class="text-base text-gray-500 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">Contact Us</a></li>
+                            <li><a href="#" class="text-base text-gray-500 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">Status</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">About</h3>
+                        <ul class="mt-4 space-y-4">
+                            <li><a href="#" class="text-base text-gray-500 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">About Monero Exchange</a></li>
+                            <li><a href="#" class="text-base text-gray-500 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">API Documentation</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="mt-8 border-t border-gray-200 dark:border-gray-700 pt-8">
+                    <p class="text-base text-gray-400 text-center">
+                        &copy; 2024 Monero Exchange Exchange. All rights reserved.
+                    </p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+    document.getElementById('test-connection').addEventListener('click', function() {
+        const button = this;
+        const resultDiv = document.getElementById('test-result');
+        const messageDiv = document.getElementById('test-message');
+        
+        button.disabled = true;
+        button.textContent = 'Testing...';
+        
+        // Simulate API call
+        setTimeout(() => {
+            resultDiv.classList.remove('hidden');
+            resultDiv.querySelector('.rounded-md').className = 'rounded-md p-4 bg-green-50 dark:bg-green-900';
+            resultDiv.querySelector('h3').className = 'text-sm font-medium text-green-800 dark:text-green-200';
+            resultDiv.querySelector('div.mt-2').className = 'mt-2 text-sm text-green-700 dark:text-green-300';
+            messageDiv.textContent = 'RPC connection is working properly.';
+            
+            button.disabled = false;
+            button.textContent = 'Test Connection';
+        }, 2000);
+    });
+    </script>
+</body>
+</html>
+
