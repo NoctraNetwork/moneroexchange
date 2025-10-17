@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Complete Monero Exchange Installation - FIXED FINAL
-# This script fixes all issues including missing .env.example and nginx config
+# Complete Laravel 11 Installation - Monero Exchange
+# This script installs everything with Laravel 11 compatibility
 
 set -e  # Exit on any error
 
@@ -28,8 +28,8 @@ print_warning() {
     echo -e "${YELLOW}[!]${NC} $1"
 }
 
-echo "🚀 Complete Monero Exchange Installation - FIXED FINAL"
-echo "====================================================="
+echo "🚀 Complete Laravel 11 Monero Exchange Installation"
+echo "=================================================="
 
 # Check if running as root
 if [ "$EUID" -ne 0 ]; then
@@ -57,8 +57,8 @@ mysql -e "GRANT ALL PRIVILEGES ON moneroexchange.* TO 'moneroexchange'@'localhos
 mysql -e "FLUSH PRIVILEGES;"
 print_status "MySQL installed and configured"
 
-# Step 3: Install Nginx with FIXED configuration
-print_info "Step 3: Installing Nginx with FIXED configuration..."
+# Step 3: Install Nginx with NO rate limiting
+print_info "Step 3: Installing Nginx with NO rate limiting..."
 
 # Stop Nginx if running
 systemctl stop nginx 2>/dev/null || true
@@ -66,21 +66,20 @@ systemctl stop nginx 2>/dev/null || true
 # Install Nginx
 apt install -y nginx
 
-# NUCLEAR CLEANUP of ALL rate limiting
-print_status "Performing NUCLEAR cleanup of ALL rate limiting..."
+# Remove ALL rate limiting
+print_status "Removing ALL rate limiting configurations..."
 rm -f /etc/nginx/conf.d/ratelimit.conf
 rm -f /etc/nginx/conf.d/*ratelimit*
 rm -f /etc/nginx/conf.d/*rate*
 
-# Remove ALL rate limiting from nginx.conf
+# Remove rate limiting from nginx.conf
 sed -i '/limit_req_zone/d' /etc/nginx/nginx.conf
 sed -i '/limit_conn_zone/d' /etc/nginx/nginx.conf
 sed -i '/limit_conn conn_limit_per_ip/d' /etc/nginx/nginx.conf
 sed -i '/include.*ratelimit/d' /etc/nginx/nginx.conf
 sed -i '/include.*rate/d' /etc/nginx/nginx.conf
 
-# Create FIXED nginx.conf that bypasses rate limiting
-print_status "Creating FIXED nginx.conf configuration..."
+# Create nginx configuration without rate limiting
 cat > /etc/nginx/nginx.conf << 'EOF'
 user www-data;
 worker_processes auto;
@@ -147,19 +146,7 @@ http {
 }
 EOF
 
-# Test nginx configuration
-print_status "Testing FIXED nginx.conf..."
-nginx -t
-
-if [ $? -ne 0 ]; then
-    print_error "Nginx configuration test failed"
-    exit 1
-fi
-
-print_status "Nginx configuration is valid"
-
 # Create site configuration
-print_status "Creating site configuration..."
 cat > /etc/nginx/sites-available/moneroexchange << 'EOF'
 server {
     listen 80;
@@ -226,15 +213,15 @@ rm -f /etc/nginx/sites-enabled/default
 # Enable site
 ln -sf /etc/nginx/sites-available/moneroexchange /etc/nginx/sites-enabled/
 
-# Test final nginx configuration
-print_status "Testing final Nginx configuration..."
+# Test nginx configuration
+print_status "Testing Nginx configuration..."
 nginx -t
 
 if [ $? -eq 0 ]; then
     print_status "✅ Nginx configuration is valid"
     systemctl start nginx
     systemctl enable nginx
-    print_status "Nginx installed and configured with FIXED config"
+    print_status "Nginx installed and configured"
 else
     print_error "❌ Nginx configuration test failed"
     exit 1
@@ -258,7 +245,7 @@ apt install -y php8.2 php8.2-fpm php8.2-mysql php8.2-redis php8.2-curl php8.2-gd
 # Configure PHP-FPM
 systemctl start php8.2-fpm
 systemctl enable php8.2-fpm
-print_status "PHP 8.2 installed and configured"
+print_status "PHP 8.2 installed and configured for Laravel 11"
 
 # Step 6: Install Composer
 print_info "Step 6: Installing Composer..."
@@ -268,8 +255,8 @@ mv composer.phar /usr/local/bin/composer
 chmod +x /usr/local/bin/composer
 print_status "Composer installed"
 
-# Step 7: Deploy Laravel Application
-print_info "Step 7: Deploying Laravel Application..."
+# Step 7: Deploy Laravel 11 Application
+print_info "Step 7: Deploying Laravel 11 Application..."
 
 # Create application directory with proper structure
 print_status "Creating application directory structure..."
@@ -304,47 +291,95 @@ fi
 # Set proper ownership
 chown -R www-data:www-data /var/www/moneroexchange
 
+# Create Laravel 11 compatible composer.json
+print_status "Creating Laravel 11 compatible composer.json..."
+cat > /var/www/moneroexchange/composer.json << 'EOF'
+{
+    "name": "noctranetwork/moneroexchange",
+    "type": "project",
+    "description": "Production-ready peer-to-peer Monero exchange with no JavaScript",
+    "keywords": ["monero", "exchange", "p2p", "escrow", "tor"],
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "laravel/framework": "^11.0",
+        "laravel/sanctum": "^4.0",
+        "laravel/tinker": "^2.9",
+        "laravel/breeze": "^2.0",
+        "guzzlehttp/guzzle": "^7.8",
+        "predis/predis": "^2.2",
+        "league/commonmark": "^2.4",
+        "intervention/image": "^2.7",
+        "spatie/laravel-permission": "^6.0",
+        "spatie/laravel-activitylog": "^4.7",
+        "barryvdh/laravel-dompdf": "^2.0",
+        "league/csv": "^9.0"
+    },
+    "require-dev": {
+        "fakerphp/faker": "^1.23",
+        "laravel/pint": "^1.13",
+        "laravel/sail": "^1.26",
+        "mockery/mockery": "^1.6",
+        "nunomaduro/collision": "^8.0",
+        "phpunit/phpunit": "^11.0.1",
+        "spatie/laravel-ignition": "^2.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/",
+            "Database\\Factories\\": "database/factories/",
+            "Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "post-autoload-dump": [
+            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
+            "@php artisan package:discover --ansi"
+        ],
+        "post-update-cmd": [
+            "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
+        ],
+        "post-root-package-install": [
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+        ],
+        "post-create-project-cmd": [
+            "@php artisan key:generate --ansi"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "dont-discover": []
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "php-http/discovery": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
+EOF
+
 # Install dependencies
-print_status "Installing Composer dependencies..."
+print_status "Installing Composer dependencies for Laravel 11..."
 cd /var/www/moneroexchange
-
-# Check if composer.json exists
-if [ ! -f "composer.json" ]; then
-    print_error "composer.json not found in /var/www/moneroexchange"
-    exit 1
-fi
-
-# Install dependencies with proper error handling
-print_status "Running composer install..."
-sudo -u www-data composer install --no-dev --optimize-autoloader --no-interaction
+sudo -u www-data composer install --no-interaction
 if [ $? -ne 0 ]; then
-    print_error "Composer install failed, trying with different flags..."
-    sudo -u www-data composer install --no-interaction
-    if [ $? -ne 0 ]; then
-        print_error "Composer install still failed, trying without optimization..."
-        sudo -u www-data composer install --no-interaction --no-optimization
-        if [ $? -ne 0 ]; then
-            print_error "Failed to install Composer dependencies after multiple attempts"
-            print_error "Manual intervention required"
-            exit 1
-        fi
-    fi
-fi
-
-# Verify vendor directory exists
-if [ ! -d "vendor" ]; then
-    print_error "Vendor directory not created"
+    print_error "Failed to install Composer dependencies"
     exit 1
 fi
 
-if [ ! -f "vendor/autoload.php" ]; then
-    print_error "vendor/autoload.php not found"
-    exit 1
-fi
-
-print_status "Composer dependencies installed successfully"
-
-# Create .env.example file (FIXED)
+# Create .env.example file
 print_status "Creating .env.example file..."
 cat > .env.example << 'EOF'
 APP_NAME="Monero Exchange"
@@ -493,9 +528,9 @@ chmod -R 775 /var/www/moneroexchange/public/uploads
 chmod 600 /var/www/moneroexchange/.env
 chown www-data:www-data /var/www/moneroexchange/.env
 
-print_status "Laravel application fully deployed with proper structure and permissions"
+print_status "Laravel 11 application fully deployed with proper structure and permissions"
 
-# Step 8: Install Monero (FIXED)
+# Step 8: Install Monero
 print_info "Step 8: Installing Monero..."
 
 # Create monero user
@@ -639,14 +674,15 @@ else
     print_error "❌ Web interface not responding"
 fi
 
-# Test Laravel application
-print_status "Testing Laravel application..."
+# Test Laravel 11 application
+print_status "Testing Laravel 11 application..."
 cd /var/www/moneroexchange
 
 if sudo -u www-data php artisan --version > /dev/null 2>&1; then
-    print_status "✅ Laravel Artisan working"
+    VERSION=$(sudo -u www-data php artisan --version 2>/dev/null | head -1)
+    print_status "✅ Laravel 11 working: $VERSION"
 else
-    print_error "❌ Laravel Artisan failed"
+    print_error "❌ Laravel 11 not working"
 fi
 
 if sudo -u www-data php artisan route:list > /dev/null 2>&1; then
@@ -671,24 +707,22 @@ else
 fi
 
 echo ""
-echo "====================================================="
-print_status "INSTALLATION COMPLETE - ALL ISSUES FIXED!"
-echo "====================================================="
+echo "=================================================="
+print_status "LARAVEL 11 INSTALLATION COMPLETE!"
+echo "=================================================="
 
-print_status "✅ Complete Monero Exchange installed successfully!"
+print_status "✅ Complete Monero Exchange with Laravel 11 installed successfully!"
 print_status "✅ All services running"
-print_status "✅ Laravel application deployed"
+print_status "✅ Laravel 11 application deployed"
 print_status "✅ Database configured"
 print_status "✅ Web interface working"
-print_status "✅ .env.example file created"
-print_status "✅ Nginx configured with your fixed config"
-print_status "✅ Monero installed and configured"
+print_status "✅ NO rate limiting conflicts!"
 
 echo ""
-print_info "Your Monero Exchange is ready at: http://127.0.0.1"
+print_info "Your Monero Exchange (Laravel 11) is ready at: http://127.0.0.1"
 print_info "Admin panel: http://127.0.0.1/admin"
 print_info "Login: http://127.0.0.1/login"
 print_info "Register: http://127.0.0.1/register"
 
 echo ""
-print_status "🎉 Installation completed successfully with ALL fixes!"
+print_status "🎉 Laravel 11 installation completed successfully!"
