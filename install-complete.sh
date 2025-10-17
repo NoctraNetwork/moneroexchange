@@ -137,7 +137,12 @@ mkdir -p /etc/nginx/conf.d
 # Remove existing rate limiting config to avoid duplicates
 rm -f /etc/nginx/conf.d/ratelimit.conf
 
-cat > /etc/nginx/conf.d/ratelimit.conf << 'EOF'
+# Check if rate limiting zones already exist in nginx.conf
+if grep -q "limit_req_zone.*login" /etc/nginx/nginx.conf; then
+    print_status "Rate limiting zones already exist in nginx.conf, skipping separate config"
+else
+    # Create rate limiting config only if not already in nginx.conf
+    cat > /etc/nginx/conf.d/ratelimit.conf << 'EOF'
 limit_req_zone $binary_remote_addr zone=login:10m rate=5r/m;
 limit_req_zone $binary_remote_addr zone=api:10m rate=10r/m;
 limit_req_zone $binary_remote_addr zone=general:10m rate=30r/m;
@@ -145,12 +150,13 @@ limit_conn_zone $binary_remote_addr zone=conn_limit_per_ip:10m;
 limit_conn conn_limit_per_ip 20;
 EOF
 
-# Remove existing include line to avoid duplicates (only if nginx.conf exists)
-if [ -f /etc/nginx/nginx.conf ]; then
+    # Remove existing include line to avoid duplicates
     sed -i '/include \/etc\/nginx\/conf.d\/ratelimit.conf;/d' /etc/nginx/nginx.conf
     
-    # Add to main nginx.conf
-    sed -i '/http {/a\\tinclude /etc/nginx/conf.d/ratelimit.conf;' /etc/nginx/nginx.conf
+    # Add to main nginx.conf only if not already there
+    if ! grep -q "include /etc/nginx/conf.d/ratelimit.conf" /etc/nginx/nginx.conf; then
+        sed -i '/http {/a\\tinclude /etc/nginx/conf.d/ratelimit.conf;' /etc/nginx/nginx.conf
+    fi
 fi
 
 # Create site config
@@ -406,16 +412,38 @@ print_status "Composer installed"
 
 # Step 8: Deploy Laravel Application
 print_info "Step 8: Deploying Laravel Application..."
+
+# Create application directory with proper structure
+print_status "Creating application directory structure..."
 mkdir -p /var/www/moneroexchange
+mkdir -p /var/www/moneroexchange/storage/app
+mkdir -p /var/www/moneroexchange/storage/framework/cache
+mkdir -p /var/www/moneroexchange/storage/framework/sessions
+mkdir -p /var/www/moneroexchange/storage/framework/views
+mkdir -p /var/www/moneroexchange/storage/logs
+mkdir -p /var/www/moneroexchange/bootstrap/cache
+mkdir -p /var/www/moneroexchange/public/uploads
+mkdir -p /var/www/moneroexchange/public/assets
+
+# Set initial permissions
 chown -R www-data:www-data /var/www/moneroexchange
+chmod -R 755 /var/www/moneroexchange
 
 # Clone repository
+print_status "Cloning repository..."
 cd /var/www
+if [ -d "moneroexchange" ]; then
+    print_status "Removing existing installation..."
+    rm -rf moneroexchange
+fi
+
 git clone https://github.com/NoctraNetwork/moneroexchange.git moneroexchange
 if [ $? -ne 0 ]; then
     print_error "Failed to clone repository"
     exit 1
 fi
+
+# Set proper ownership
 chown -R www-data:www-data /var/www/moneroexchange
 
 # Install dependencies
@@ -540,12 +568,77 @@ sudo -u www-data php artisan event:cache
 # Create storage symlink
 sudo -u www-data php artisan storage:link
 
-# Set permissions
+# Set comprehensive permissions
+print_status "Setting proper permissions..."
+
+# Set ownership
 chown -R www-data:www-data /var/www/moneroexchange
-chmod -R 755 /var/www/moneroexchange
+
+# Set directory permissions
+find /var/www/moneroexchange -type d -exec chmod 755 {} \;
+
+# Set file permissions
+find /var/www/moneroexchange -type f -exec chmod 644 {} \;
+
+# Set executable permissions for specific files
+chmod +x /var/www/moneroexchange/artisan
+chmod +x /var/www/moneroexchange/public/index.php
+
+# Set writable permissions for Laravel directories
 chmod -R 775 /var/www/moneroexchange/storage
 chmod -R 775 /var/www/moneroexchange/bootstrap/cache
-print_status "Laravel application deployed"
+chmod -R 775 /var/www/moneroexchange/public/uploads
+
+# Set specific permissions for storage subdirectories
+chmod 775 /var/www/moneroexchange/storage/app
+chmod 775 /var/www/moneroexchange/storage/framework
+chmod 775 /var/www/moneroexchange/storage/framework/cache
+chmod 775 /var/www/moneroexchange/storage/framework/sessions
+chmod 775 /var/www/moneroexchange/storage/framework/views
+chmod 775 /var/www/moneroexchange/storage/logs
+
+# Ensure .env file has correct permissions
+chmod 600 /var/www/moneroexchange/.env
+chown www-data:www-data /var/www/moneroexchange/.env
+
+# Create necessary symlinks
+print_status "Creating necessary symlinks..."
+cd /var/www/moneroexchange
+sudo -u www-data php artisan storage:link
+
+# Verify file structure
+print_status "Verifying file structure..."
+if [ -f "/var/www/moneroexchange/artisan" ]; then
+    print_status "✅ Artisan file exists"
+else
+    print_error "❌ Artisan file missing"
+fi
+
+if [ -f "/var/www/moneroexchange/composer.json" ]; then
+    print_status "✅ Composer.json exists"
+else
+    print_error "❌ Composer.json missing"
+fi
+
+if [ -d "/var/www/moneroexchange/app" ]; then
+    print_status "✅ App directory exists"
+else
+    print_error "❌ App directory missing"
+fi
+
+if [ -d "/var/www/moneroexchange/resources/views" ]; then
+    print_status "✅ Views directory exists"
+else
+    print_error "❌ Views directory missing"
+fi
+
+if [ -d "/var/www/moneroexchange/public" ]; then
+    print_status "✅ Public directory exists"
+else
+    print_error "❌ Public directory missing"
+fi
+
+print_status "Laravel application fully deployed with proper structure and permissions"
 
 # Step 9: Verify Laravel Application
 print_info "Step 9: Verifying Laravel Application..."
@@ -561,6 +654,119 @@ if [ $? -eq 0 ]; then
     echo "Routes found: $(wc -l < /tmp/routes.txt)"
 else
     print_error "❌ Failed to load Laravel routes"
+fi
+
+# Verify all critical files and directories exist
+print_status "Verifying complete file structure..."
+
+# Check critical Laravel files
+CRITICAL_FILES=(
+    "/var/www/moneroexchange/artisan"
+    "/var/www/moneroexchange/composer.json"
+    "/var/www/moneroexchange/.env"
+    "/var/www/moneroexchange/public/index.php"
+    "/var/www/moneroexchange/bootstrap/app.php"
+    "/var/www/moneroexchange/config/app.php"
+    "/var/www/moneroexchange/config/database.php"
+    "/var/www/moneroexchange/config/session.php"
+    "/var/www/moneroexchange/routes/web.php"
+)
+
+for file in "${CRITICAL_FILES[@]}"; do
+    if [ -f "$file" ]; then
+        print_status "✅ $(basename $file) exists"
+    else
+        print_error "❌ $(basename $file) missing"
+    fi
+done
+
+# Check critical directories
+CRITICAL_DIRS=(
+    "/var/www/moneroexchange/app"
+    "/var/www/moneroexchange/app/Http/Controllers"
+    "/var/www/moneroexchange/app/Models"
+    "/var/www/moneroexchange/app/Http/Middleware"
+    "/var/www/moneroexchange/resources/views"
+    "/var/www/moneroexchange/resources/views/auth"
+    "/var/www/moneroexchange/resources/views/layouts"
+    "/var/www/moneroexchange/public"
+    "/var/www/moneroexchange/storage"
+    "/var/www/moneroexchange/database/migrations"
+    "/var/www/moneroexchange/config"
+    "/var/www/moneroexchange/routes"
+)
+
+for dir in "${CRITICAL_DIRS[@]}"; do
+    if [ -d "$dir" ]; then
+        print_status "✅ $(basename $dir) directory exists"
+    else
+        print_error "❌ $(basename $dir) directory missing"
+    fi
+done
+
+# Check specific view files
+print_status "Checking view files..."
+VIEW_FILES=(
+    "/var/www/moneroexchange/resources/views/layouts/app.blade.php"
+    "/var/www/moneroexchange/resources/views/home.blade.php"
+    "/var/www/moneroexchange/resources/views/auth/login.blade.php"
+    "/var/www/moneroexchange/resources/views/auth/register.blade.php"
+    "/var/www/moneroexchange/resources/views/dashboard.blade.php"
+    "/var/www/moneroexchange/resources/views/offers/index.blade.php"
+    "/var/www/moneroexchange/resources/views/trades/index.blade.php"
+    "/var/www/moneroexchange/resources/views/admin/dashboard.blade.php"
+)
+
+for file in "${VIEW_FILES[@]}"; do
+    if [ -f "$file" ]; then
+        print_status "✅ $(basename $file) exists"
+    else
+        print_error "❌ $(basename $file) missing"
+    fi
+done
+
+# Check controller files
+print_status "Checking controller files..."
+CONTROLLER_FILES=(
+    "/var/www/moneroexchange/app/Http/Controllers/HomeController.php"
+    "/var/www/moneroexchange/app/Http/Controllers/Auth/AuthController.php"
+    "/var/www/moneroexchange/app/Http/Controllers/OfferController.php"
+    "/var/www/moneroexchange/app/Http/Controllers/TradeController.php"
+    "/var/www/moneroexchange/app/Http/Controllers/Admin/AdminController.php"
+)
+
+for file in "${CONTROLLER_FILES[@]}"; do
+    if [ -f "$file" ]; then
+        print_status "✅ $(basename $file) exists"
+    else
+        print_error "❌ $(basename $file) missing"
+    fi
+done
+
+# Check model files
+print_status "Checking model files..."
+MODEL_FILES=(
+    "/var/www/moneroexchange/app/Models/User.php"
+    "/var/www/moneroexchange/app/Models/Offer.php"
+    "/var/www/moneroexchange/app/Models/Trade.php"
+    "/var/www/moneroexchange/app/Models/Dispute.php"
+)
+
+for file in "${MODEL_FILES[@]}"; do
+    if [ -f "$file" ]; then
+        print_status "✅ $(basename $file) exists"
+    else
+        print_error "❌ $(basename $file) missing"
+    fi
+done
+
+# Check migration files
+print_status "Checking migration files..."
+MIGRATION_COUNT=$(find /var/www/moneroexchange/database/migrations -name "*.php" | wc -l)
+if [ $MIGRATION_COUNT -gt 0 ]; then
+    print_status "✅ $MIGRATION_COUNT migration files found"
+else
+    print_error "❌ No migration files found"
 fi
 
 # Test database connection
