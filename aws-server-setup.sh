@@ -131,6 +131,10 @@ print_step "Fixing Nginx configuration..."
 
 # Create rate limiting config
 mkdir -p /etc/nginx/conf.d
+
+# Remove existing rate limiting config to avoid duplicates
+rm -f /etc/nginx/conf.d/ratelimit.conf
+
 cat > /etc/nginx/conf.d/ratelimit.conf << 'EOF'
 # Rate limiting zones (must be in http context)
 limit_req_zone $binary_remote_addr zone=login:10m rate=5r/m;
@@ -142,10 +146,11 @@ limit_conn_zone $binary_remote_addr zone=conn_limit_per_ip:10m;
 limit_conn conn_limit_per_ip 20;
 EOF
 
-# Add include to main nginx.conf if not present
-if ! grep -q "include /etc/nginx/conf.d/ratelimit.conf;" /etc/nginx/nginx.conf; then
-    sed -i '/http {/a\\tinclude /etc/nginx/conf.d/ratelimit.conf;' /etc/nginx/nginx.conf
-fi
+# Remove existing include line to avoid duplicates
+sed -i '/include \/etc\/nginx\/conf.d\/ratelimit.conf;/d' /etc/nginx/nginx.conf
+
+# Add include to main nginx.conf
+sed -i '/http {/a\\tinclude /etc/nginx/conf.d/ratelimit.conf;' /etc/nginx/nginx.conf
 
 # Create site configuration
 cat > /etc/nginx/sites-available/moneroexchange << 'EOF'

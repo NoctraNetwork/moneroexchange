@@ -36,6 +36,25 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
+# Clean up any existing configurations to avoid conflicts
+print_info "Cleaning up existing configurations..."
+systemctl stop nginx 2>/dev/null || true
+systemctl stop mysql 2>/dev/null || true
+systemctl stop redis-server 2>/dev/null || true
+systemctl stop php8.2-fpm 2>/dev/null || true
+systemctl stop monerod 2>/dev/null || true
+systemctl stop monero-wallet-rpc 2>/dev/null || true
+
+# Clean up Nginx configurations
+rm -f /etc/nginx/conf.d/ratelimit.conf
+rm -f /etc/nginx/sites-enabled/moneroexchange
+sed -i '/include \/etc\/nginx\/conf.d\/ratelimit.conf;/d' /etc/nginx/nginx.conf
+
+# Clean up Monero configurations
+rm -f /etc/systemd/system/monerod.service
+rm -f /etc/systemd/system/monero-wallet-rpc.service
+systemctl daemon-reload
+
 # Step 1: Update system
 print_info "Step 1: Updating system..."
 apt update && apt upgrade -y
@@ -101,10 +120,18 @@ print_status "MySQL installed and configured"
 
 # Step 3: Install Nginx
 print_info "Step 3: Installing Nginx..."
+
+# Stop Nginx if running to avoid conflicts
+systemctl stop nginx 2>/dev/null || true
+
 apt install -y nginx
 
 # Create rate limiting config
 mkdir -p /etc/nginx/conf.d
+
+# Remove existing rate limiting config to avoid duplicates
+rm -f /etc/nginx/conf.d/ratelimit.conf
+
 cat > /etc/nginx/conf.d/ratelimit.conf << 'EOF'
 limit_req_zone $binary_remote_addr zone=login:10m rate=5r/m;
 limit_req_zone $binary_remote_addr zone=api:10m rate=10r/m;
@@ -112,6 +139,9 @@ limit_req_zone $binary_remote_addr zone=general:10m rate=30r/m;
 limit_conn_zone $binary_remote_addr zone=conn_limit_per_ip:10m;
 limit_conn conn_limit_per_ip 20;
 EOF
+
+# Remove existing include line to avoid duplicates
+sed -i '/include \/etc\/nginx\/conf.d\/ratelimit.conf;/d' /etc/nginx/nginx.conf
 
 # Add to main nginx.conf
 sed -i '/http {/a\\tinclude /etc/nginx/conf.d/ratelimit.conf;' /etc/nginx/nginx.conf
@@ -181,8 +211,12 @@ server {
 }
 EOF
 
-ln -sf /etc/nginx/sites-available/moneroexchange /etc/nginx/sites-enabled/
+# Clean up existing configurations
+rm -f /etc/nginx/sites-enabled/moneroexchange
 rm -f /etc/nginx/sites-enabled/default
+
+# Enable site
+ln -sf /etc/nginx/sites-available/moneroexchange /etc/nginx/sites-enabled/
 nginx -t
 systemctl start nginx
 systemctl enable nginx
@@ -475,11 +509,29 @@ if [ $? -ne 0 ]; then
     print_error "Failed to generate application key"
     exit 1
 fi
+
+# Run database migrations
 sudo -u www-data php artisan migrate --force
 if [ $? -ne 0 ]; then
     print_error "Failed to run database migrations"
     exit 1
 fi
+
+# Seed the database
+sudo -u www-data php artisan db:seed --force
+if [ $? -ne 0 ]; then
+    print_error "Failed to seed database"
+    exit 1
+fi
+
+# Clear and cache configuration
+sudo -u www-data php artisan config:cache
+sudo -u www-data php artisan route:cache
+sudo -u www-data php artisan view:cache
+sudo -u www-data php artisan event:cache
+
+# Create storage symlink
+sudo -u www-data php artisan storage:link
 
 # Set permissions
 chown -R www-data:www-data /var/www/moneroexchange
@@ -488,8 +540,106 @@ chmod -R 775 /var/www/moneroexchange/storage
 chmod -R 775 /var/www/moneroexchange/bootstrap/cache
 print_status "Laravel application deployed"
 
-# Step 9: Create verification script
-print_info "Step 9: Creating verification script..."
+# Step 9: Verify Laravel Application
+print_info "Step 9: Verifying Laravel Application..."
+
+# Test Laravel routes
+print_status "Testing Laravel routes..."
+cd /var/www/moneroexchange
+
+# Test basic routes
+sudo -u www-data php artisan route:list > /tmp/routes.txt
+if [ $? -eq 0 ]; then
+    print_status "✅ Laravel routes loaded successfully"
+    echo "Routes found: $(wc -l < /tmp/routes.txt)"
+else
+    print_error "❌ Failed to load Laravel routes"
+fi
+
+# Test database connection
+print_status "Testing database connection..."
+sudo -u www-data php artisan tinker --execute="echo 'Database connected: ' . (DB::connection()->getPdo() ? 'Yes' : 'No');"
+if [ $? -eq 0 ]; then
+    print_status "✅ Database connection working"
+else
+    print_error "❌ Database connection failed"
+fi
+
+# Test Redis connection
+print_status "Testing Redis connection..."
+sudo -u www-data php artisan tinker --execute="echo 'Redis connected: ' . (Redis::ping() ? 'Yes' : 'No');"
+if [ $? -eq 0 ]; then
+    print_status "✅ Redis connection working"
+else
+    print_error "❌ Redis connection failed"
+fi
+
+# Test Monero RPC connection
+print_status "Testing Monero RPC connection..."
+sudo -u www-data php artisan tinker --execute="echo 'Monero RPC: ' . (app('App\Services\MoneroRpcService')->getHeight() ? 'Connected' : 'Failed');"
+if [ $? -eq 0 ]; then
+    print_status "✅ Monero RPC connection working"
+else
+    print_error "❌ Monero RPC connection failed"
+fi
+
+# Step 10: Create comprehensive verification scripts
+print_info "Step 10: Creating verification scripts..."
+
+# Create Laravel application verification script
+cat > /usr/local/bin/verify-laravel-app << 'EOF'
+#!/bin/bash
+
+# Laravel Application Verification Script
+echo "🔍 Verifying Laravel Application - Monero Exchange"
+
+APP_DIR="/var/www/moneroexchange"
+cd "$APP_DIR"
+
+# Test Laravel Artisan
+if sudo -u www-data php artisan --version > /dev/null 2>&1; then
+    echo "✅ Laravel Artisan working"
+else
+    echo "❌ Laravel Artisan failed"
+    exit 1
+fi
+
+# Test Routes
+if sudo -u www-data php artisan route:list > /dev/null 2>&1; then
+    ROUTE_COUNT=$(sudo -u www-data php artisan route:list | wc -l)
+    echo "✅ Routes loaded: $ROUTE_COUNT routes"
+else
+    echo "❌ Routes failed"
+fi
+
+# Test Database
+if sudo -u www-data php artisan tinker --execute="echo DB::connection()->getPdo() ? 'DB OK' : 'DB FAIL';" 2>/dev/null | grep -q "DB OK"; then
+    echo "✅ Database connected"
+else
+    echo "❌ Database failed"
+fi
+
+# Test Redis
+if sudo -u www-data php artisan tinker --execute="echo Redis::ping() ? 'Redis OK' : 'Redis FAIL';" 2>/dev/null | grep -q "Redis OK"; then
+    echo "✅ Redis connected"
+else
+    echo "❌ Redis failed"
+fi
+
+# Test Web Interface
+if curl -s -I http://127.0.0.1 | grep -q "200 OK\|404 Not Found"; then
+    echo "✅ Web interface responding"
+else
+    echo "❌ Web interface failed"
+fi
+
+echo "🎉 Laravel application verification complete!"
+EOF
+
+chmod +x /usr/local/bin/verify-laravel-app
+
+# Step 11: Create main verification script
+print_info "Step 11: Creating main verification script..."
 cat > /usr/local/bin/verify-monero-exchange << 'EOF'
 #!/bin/bash
 
@@ -513,6 +663,36 @@ if curl -s -I http://127.0.0.1 | grep -q "200 OK\|404 Not Found"; then
     echo "✅ Web interface responding"
 else
     echo "❌ Web interface not responding"
+fi
+
+# Test Laravel application
+echo ""
+echo "🔍 Testing Laravel Application..."
+
+# Test routes
+if [ -f /var/www/moneroexchange/artisan ]; then
+    cd /var/www/moneroexchange
+    if sudo -u www-data php artisan route:list > /dev/null 2>&1; then
+        echo "✅ Laravel routes working"
+    else
+        echo "❌ Laravel routes failed"
+    fi
+    
+    # Test database
+    if sudo -u www-data php artisan tinker --execute="echo DB::connection()->getPdo() ? 'DB OK' : 'DB FAIL';" 2>/dev/null | grep -q "DB OK"; then
+        echo "✅ Database connection working"
+    else
+        echo "❌ Database connection failed"
+    fi
+    
+    # Test Redis
+    if sudo -u www-data php artisan tinker --execute="echo Redis::ping() ? 'Redis OK' : 'Redis FAIL';" 2>/dev/null | grep -q "Redis OK"; then
+        echo "✅ Redis connection working"
+    else
+        echo "❌ Redis connection failed"
+    fi
+else
+    echo "❌ Laravel application not found"
 fi
 
 if mysql -u moneroexchange -p'Walnutdesk88?' -h 127.0.0.1 moneroexchange -e "SELECT 1;" >/dev/null 2>&1; then
