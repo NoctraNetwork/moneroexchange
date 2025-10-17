@@ -141,14 +141,17 @@ fi
 # Create rate limiting config
 mkdir -p /etc/nginx/conf.d
 
-# Remove existing rate limiting config to avoid duplicates
+# AGGRESSIVELY remove existing rate limiting config to avoid duplicates
+print_status "Removing ALL existing rate limiting configurations..."
 rm -f /etc/nginx/conf.d/ratelimit.conf
+rm -f /etc/nginx/conf.d/*ratelimit*
 
 # Check if rate limiting zones already exist in nginx.conf
 if grep -q "limit_req_zone.*login" /etc/nginx/nginx.conf; then
     print_status "Rate limiting zones already exist in nginx.conf, skipping separate config"
 else
     # Create rate limiting config only if not already in nginx.conf
+    print_status "Creating clean rate limiting configuration..."
     cat > /etc/nginx/conf.d/ratelimit.conf << 'EOF'
 limit_req_zone $binary_remote_addr zone=login:10m rate=5r/m;
 limit_req_zone $binary_remote_addr zone=api:10m rate=10r/m;
@@ -164,6 +167,25 @@ EOF
     if ! grep -q "include /etc/nginx/conf.d/ratelimit.conf" /etc/nginx/nginx.conf; then
         sed -i '/http {/a\\tinclude /etc/nginx/conf.d/ratelimit.conf;' /etc/nginx/nginx.conf
     fi
+fi
+
+# Test nginx configuration before proceeding
+print_status "Testing Nginx configuration..."
+nginx -t
+if [ $? -ne 0 ]; then
+    print_error "Nginx configuration test failed after rate limiting setup"
+    print_error "Removing rate limiting config and trying without it..."
+    rm -f /etc/nginx/conf.d/ratelimit.conf
+    sed -i '/include \/etc\/nginx\/conf.d\/ratelimit.conf;/d' /etc/nginx/nginx.conf
+    nginx -t
+    if [ $? -eq 0 ]; then
+        print_status "Nginx configuration works without rate limiting"
+    else
+        print_error "Nginx configuration still failing"
+        exit 1
+    fi
+else
+    print_status "Nginx configuration test passed"
 fi
 
 # Create site config
