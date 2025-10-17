@@ -38,19 +38,14 @@ fi
 
 # Clean up any existing configurations to avoid conflicts
 print_info "Cleaning up existing configurations..."
+
+# Stop services (only if they exist)
 systemctl stop nginx 2>/dev/null || true
 systemctl stop mysql 2>/dev/null || true
 systemctl stop redis-server 2>/dev/null || true
 systemctl stop php8.2-fpm 2>/dev/null || true
 systemctl stop monerod 2>/dev/null || true
 systemctl stop monero-wallet-rpc 2>/dev/null || true
-
-# Clean up Nginx configurations (only if Nginx is installed)
-if [ -f /etc/nginx/nginx.conf ]; then
-    rm -f /etc/nginx/conf.d/ratelimit.conf
-    rm -f /etc/nginx/sites-enabled/moneroexchange
-    sed -i '/include \/etc\/nginx\/conf.d\/ratelimit.conf;/d' /etc/nginx/nginx.conf
-fi
 
 # Clean up Monero configurations
 rm -f /etc/systemd/system/monerod.service
@@ -127,6 +122,14 @@ print_info "Step 3: Installing Nginx..."
 systemctl stop nginx 2>/dev/null || true
 
 apt install -y nginx
+
+# Now clean up Nginx configurations (after Nginx is installed)
+print_info "Cleaning up Nginx configurations..."
+rm -f /etc/nginx/conf.d/ratelimit.conf
+rm -f /etc/nginx/sites-enabled/moneroexchange
+if [ -f /etc/nginx/nginx.conf ]; then
+    sed -i '/include \/etc\/nginx\/conf.d\/ratelimit.conf;/d' /etc/nginx/nginx.conf
+fi
 
 # Create rate limiting config
 mkdir -p /etc/nginx/conf.d
