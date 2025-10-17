@@ -86,9 +86,7 @@ wait_timeout = 28800
 interactive_timeout = 28800
 
 # Query cache
-query_cache_type = 1
-query_cache_size = 32M
-query_cache_limit = 2M
+# Query cache removed (deprecated in MySQL 8.0+)
 
 # Logging
 log-error = /var/log/mysql/error.log
@@ -292,6 +290,8 @@ systemctl enable redis-server
 
 # 6. Install PHP 8.2 and extensions
 print_step "Installing PHP 8.2 and extensions..."
+add-apt-repository ppa:ondrej/php -y
+apt update
 apt install -y php8.2-fpm php8.2-mysql php8.2-redis php8.2-curl php8.2-gd php8.2-mbstring php8.2-xml php8.2-zip php8.2-bcmath php8.2-intl
 
 # Configure PHP-FPM

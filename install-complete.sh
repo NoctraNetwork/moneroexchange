@@ -72,9 +72,7 @@ max_connect_errors = 10
 connect_timeout = 10
 wait_timeout = 28800
 interactive_timeout = 28800
-query_cache_type = 1
-query_cache_size = 32M
-query_cache_limit = 2M
+# Query cache removed (deprecated in MySQL 8.0+)
 log-error = /var/log/mysql/error.log
 slow_query_log = 1
 slow_query_log_file = /var/log/mysql/slow.log
@@ -266,7 +264,15 @@ mkdir -p /opt/monero /var/lib/monero /var/log/monero /etc/monero /var/lib/monero
 
 cd /tmp
 wget -O monero-linux-x64-v0.18.4.3.tar.bz2 https://downloads.getmonero.org/cli/monero-linux-x64-v0.18.4.3.tar.bz2
+if [ $? -ne 0 ]; then
+    print_error "Failed to download Monero"
+    exit 1
+fi
 tar -xjf monero-linux-x64-v0.18.4.3.tar.bz2
+if [ $? -ne 0 ]; then
+    print_error "Failed to extract Monero"
+    exit 1
+fi
 cp monero-x86_64-linux-gnu-v0.18.4.3/monerod /usr/local/bin/
 cp monero-x86_64-linux-gnu-v0.18.4.3/monero-wallet-rpc /usr/local/bin/
 cp monero-x86_64-linux-gnu-v0.18.4.3/monero-wallet-cli /usr/local/bin/
@@ -365,11 +371,19 @@ chown -R www-data:www-data /var/www/moneroexchange
 # Clone repository
 cd /var/www
 git clone https://github.com/NoctraNetwork/moneroexchange.git moneroexchange
+if [ $? -ne 0 ]; then
+    print_error "Failed to clone repository"
+    exit 1
+fi
 chown -R www-data:www-data /var/www/moneroexchange
 
 # Install dependencies
 cd /var/www/moneroexchange
 sudo -u www-data composer install --no-dev --optimize-autoloader
+if [ $? -ne 0 ]; then
+    print_error "Failed to install Composer dependencies"
+    exit 1
+fi
 
 # Create .env file
 cat > .env << 'EOF'
@@ -457,7 +471,15 @@ EOF
 
 # Generate key and run migrations
 sudo -u www-data php artisan key:generate
+if [ $? -ne 0 ]; then
+    print_error "Failed to generate application key"
+    exit 1
+fi
 sudo -u www-data php artisan migrate --force
+if [ $? -ne 0 ]; then
+    print_error "Failed to run database migrations"
+    exit 1
+fi
 
 # Set permissions
 chown -R www-data:www-data /var/www/moneroexchange
