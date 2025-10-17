@@ -127,8 +127,15 @@ apt install -y nginx
 print_info "Cleaning up Nginx configurations..."
 rm -f /etc/nginx/conf.d/ratelimit.conf
 rm -f /etc/nginx/sites-enabled/moneroexchange
+
+# AGGRESSIVELY remove ALL rate limiting from nginx.conf
 if [ -f /etc/nginx/nginx.conf ]; then
-    sed -i '/include \/etc\/nginx\/conf.d\/ratelimit.conf;/d' /etc/nginx/nginx.conf
+    print_status "Removing ALL rate limiting from nginx.conf..."
+    sed -i '/limit_req_zone/d' /etc/nginx/nginx.conf
+    sed -i '/limit_conn_zone/d' /etc/nginx/nginx.conf
+    sed -i '/limit_conn conn_limit_per_ip/d' /etc/nginx/nginx.conf
+    sed -i '/include.*ratelimit/d' /etc/nginx/nginx.conf
+    print_status "All rate limiting removed from nginx.conf"
 fi
 
 # Create rate limiting config
