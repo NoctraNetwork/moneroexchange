@@ -45,15 +45,17 @@ systemctl stop php8.2-fpm 2>/dev/null || true
 systemctl stop monerod 2>/dev/null || true
 systemctl stop monero-wallet-rpc 2>/dev/null || true
 
-# Clean up Nginx configurations
-rm -f /etc/nginx/conf.d/ratelimit.conf
-rm -f /etc/nginx/sites-enabled/moneroexchange
-sed -i '/include \/etc\/nginx\/conf.d\/ratelimit.conf;/d' /etc/nginx/nginx.conf
+# Clean up Nginx configurations (only if Nginx is installed)
+if [ -f /etc/nginx/nginx.conf ]; then
+    rm -f /etc/nginx/conf.d/ratelimit.conf
+    rm -f /etc/nginx/sites-enabled/moneroexchange
+    sed -i '/include \/etc\/nginx\/conf.d\/ratelimit.conf;/d' /etc/nginx/nginx.conf
+fi
 
 # Clean up Monero configurations
 rm -f /etc/systemd/system/monerod.service
 rm -f /etc/systemd/system/monero-wallet-rpc.service
-systemctl daemon-reload
+systemctl daemon-reload 2>/dev/null || true
 
 # Step 1: Update system
 print_info "Step 1: Updating system..."
@@ -140,11 +142,13 @@ limit_conn_zone $binary_remote_addr zone=conn_limit_per_ip:10m;
 limit_conn conn_limit_per_ip 20;
 EOF
 
-# Remove existing include line to avoid duplicates
-sed -i '/include \/etc\/nginx\/conf.d\/ratelimit.conf;/d' /etc/nginx/nginx.conf
-
-# Add to main nginx.conf
-sed -i '/http {/a\\tinclude /etc/nginx/conf.d/ratelimit.conf;' /etc/nginx/nginx.conf
+# Remove existing include line to avoid duplicates (only if nginx.conf exists)
+if [ -f /etc/nginx/nginx.conf ]; then
+    sed -i '/include \/etc\/nginx\/conf.d\/ratelimit.conf;/d' /etc/nginx/nginx.conf
+    
+    # Add to main nginx.conf
+    sed -i '/http {/a\\tinclude /etc/nginx/conf.d/ratelimit.conf;' /etc/nginx/nginx.conf
+fi
 
 # Create site config
 cat > /etc/nginx/sites-available/moneroexchange << 'EOF'
