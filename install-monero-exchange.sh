@@ -1,16 +1,16 @@
 #!/bin/bash
 
-# Complete Laravel 11 Installation - Monero Exchange
-# This script installs everything with Laravel 11 compatibility
+# Complete Monero Exchange Installation
+# Single comprehensive installation script
 
-set -e  # Exit on any error
+set -e
 
-# Colors for output
+# Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
 print_status() {
     echo -e "${GREEN}[✓]${NC} $1"
@@ -28,8 +28,8 @@ print_warning() {
     echo -e "${YELLOW}[!]${NC} $1"
 }
 
-echo "🚀 Complete Laravel 11 Monero Exchange Installation"
-echo "=================================================="
+echo "🚀 Complete Monero Exchange Installation"
+echo "========================================"
 
 # Check if running as root
 if [ "$EUID" -ne 0 ]; then
@@ -37,10 +37,10 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-# Step 1: Update system
-print_info "Step 1: Updating system..."
+# Step 1: Update system and install packages
+print_info "Step 1: Updating system and installing packages..."
 apt update && apt upgrade -y
-apt install -y wget curl unzip software-properties-common apt-transport-https ca-certificates gnupg lsb-release
+apt install -y wget curl unzip software-properties-common apt-transport-https ca-certificates gnupg lsb-release bzip2
 
 # Step 2: Install MySQL
 print_info "Step 2: Installing MySQL..."
@@ -55,10 +55,10 @@ mysql -e "CREATE DATABASE IF NOT EXISTS moneroexchange;"
 mysql -e "CREATE USER IF NOT EXISTS 'moneroexchange'@'localhost' IDENTIFIED BY 'Walnutdesk88?';"
 mysql -e "GRANT ALL PRIVILEGES ON moneroexchange.* TO 'moneroexchange'@'localhost';"
 mysql -e "FLUSH PRIVILEGES;"
-print_status "MySQL installed and configured"
+print_status "✅ MySQL installed and configured"
 
-# Step 3: Install Nginx with NO rate limiting
-print_info "Step 3: Installing Nginx with NO rate limiting..."
+# Step 3: Install Nginx with your configuration
+print_info "Step 3: Installing Nginx with your configuration..."
 
 # Stop Nginx if running
 systemctl stop nginx 2>/dev/null || true
@@ -66,20 +66,12 @@ systemctl stop nginx 2>/dev/null || true
 # Install Nginx
 apt install -y nginx
 
-# Remove ALL rate limiting
-print_status "Removing ALL rate limiting configurations..."
+# Remove all rate limiting
 rm -f /etc/nginx/conf.d/ratelimit.conf
 rm -f /etc/nginx/conf.d/*ratelimit*
 rm -f /etc/nginx/conf.d/*rate*
 
-# Remove rate limiting from nginx.conf
-sed -i '/limit_req_zone/d' /etc/nginx/nginx.conf
-sed -i '/limit_conn_zone/d' /etc/nginx/nginx.conf
-sed -i '/limit_conn conn_limit_per_ip/d' /etc/nginx/nginx.conf
-sed -i '/include.*ratelimit/d' /etc/nginx/nginx.conf
-sed -i '/include.*rate/d' /etc/nginx/nginx.conf
-
-# Create nginx configuration without rate limiting
+# Create nginx.conf with your exact configuration
 cat > /etc/nginx/nginx.conf << 'EOF'
 user www-data;
 worker_processes auto;
@@ -228,22 +220,18 @@ server {
 }
 EOF
 
-# Clean up existing configurations
+# Enable site
 rm -f /etc/nginx/sites-enabled/moneroexchange
 rm -f /etc/nginx/sites-enabled/default
-
-# Enable site
 ln -sf /etc/nginx/sites-available/moneroexchange /etc/nginx/sites-enabled/
 
 # Test nginx configuration
-print_status "Testing Nginx configuration..."
 nginx -t
-
 if [ $? -eq 0 ]; then
-    print_status "✅ Nginx configuration is valid"
+    print_status "✅ Nginx configuration valid"
     systemctl start nginx
     systemctl enable nginx
-    print_status "Nginx installed and configured"
+    print_status "✅ Nginx started successfully"
 else
     print_error "❌ Nginx configuration test failed"
     exit 1
@@ -256,18 +244,46 @@ apt install -y redis-server
 # Configure Redis
 systemctl start redis-server
 systemctl enable redis-server
-print_status "Redis installed and configured"
+print_status "✅ Redis installed and configured"
 
 # Step 5: Install PHP 8.2 for Laravel 11
 print_info "Step 5: Installing PHP 8.2 for Laravel 11..."
 add-apt-repository ppa:ondrej/php -y
 apt update
-apt install -y php8.2 php8.2-fpm php8.2-mysql php8.2-redis php8.2-curl php8.2-gd php8.2-mbstring php8.2-xml php8.2-zip php8.2-bcmath php8.2-intl php8.2-tokenizer
+apt install -y php8.2 php8.2-fpm php8.2-mysql php8.2-redis php8.2-curl php8.2-gd php8.2-mbstring php8.2-xml php8.2-zip php8.2-bcmath php8.2-intl php8.2-tokenizer php8.2-fileinfo php8.2-ctype php8.2-json php8.2-openssl
 
-# Configure PHP-FPM
+# Fix PHP-FPM configuration
+cat > /etc/php/8.2/fpm/pool.d/www.conf << 'EOF'
+[www]
+user = www-data
+group = www-data
+listen = /var/run/php/php8.2-fpm.sock
+listen.owner = www-data
+listen.group = www-data
+listen.mode = 0660
+pm = dynamic
+pm.max_children = 5
+pm.start_servers = 2
+pm.min_spare_servers = 1
+pm.max_spare_servers = 3
+pm.max_requests = 1000
+chdir = /
+php_admin_value[error_log] = /var/log/php8.2-fpm.log
+php_admin_flag[log_errors] = on
+php_value[session.save_handler] = files
+php_value[session.save_path] = /var/lib/php/sessions
+php_value[soap.wsdl_cache_dir] = /var/lib/php/wsdlcache
+EOF
+
+# Create necessary directories
+mkdir -p /var/lib/php/sessions
+mkdir -p /var/lib/php/wsdlcache
+chown -R www-data:www-data /var/lib/php
+
+# Start PHP-FPM
 systemctl start php8.2-fpm
 systemctl enable php8.2-fpm
-print_status "PHP 8.2 installed and configured for Laravel 11"
+print_status "✅ PHP 8.2 installed and configured"
 
 # Step 6: Install Composer
 print_info "Step 6: Installing Composer..."
@@ -275,7 +291,7 @@ cd /tmp
 curl -sS https://getcomposer.org/installer | php
 mv composer.phar /usr/local/bin/composer
 chmod +x /usr/local/bin/composer
-print_status "Composer installed"
+print_status "✅ Composer installed"
 
 # Step 7: Deploy Laravel 11 Application
 print_info "Step 7: Deploying Laravel 11 Application..."
@@ -392,6 +408,208 @@ cat > /var/www/moneroexchange/composer.json << 'EOF'
 }
 EOF
 
+# Create missing AppServiceProvider
+print_status "Creating missing AppServiceProvider..."
+mkdir -p /var/www/moneroexchange/app/Providers
+cat > /var/www/moneroexchange/app/Providers/AppServiceProvider.php << 'EOF'
+<?php
+
+namespace App\Providers;
+
+use Illuminate\Support\ServiceProvider;
+
+class AppServiceProvider extends ServiceProvider
+{
+    /**
+     * Register any application services.
+     */
+    public function register(): void
+    {
+        //
+    }
+
+    /**
+     * Bootstrap any application services.
+     */
+    public function boot(): void
+    {
+        //
+    }
+}
+EOF
+
+# Create missing AuthServiceProvider
+cat > /var/www/moneroexchange/app/Providers/AuthServiceProvider.php << 'EOF'
+<?php
+
+namespace App\Providers;
+
+use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
+
+class AuthServiceProvider extends ServiceProvider
+{
+    /**
+     * The model to policy mappings for the application.
+     *
+     * @var array<class-string, class-string>
+     */
+    protected $policies = [
+        //
+    ];
+
+    /**
+     * Register any authentication / authorization services.
+     */
+    public function boot(): void
+    {
+        //
+    }
+}
+
+EOF
+
+# Create missing EventServiceProvider
+cat > /var/www/moneroexchange/app/Providers/EventServiceProvider.php << 'EOF'
+<?php
+
+namespace App\Providers;
+
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
+use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
+use Illuminate\Support\Facades\Event;
+
+class EventServiceProvider extends ServiceProvider
+{
+    /**
+     * The event to listener mappings for the application.
+     *
+     * @var array<class-string, array<int, class-string>>
+     */
+    protected $listen = [
+        Registered::class => [
+            SendEmailVerificationNotification::class,
+        ],
+    ];
+
+    /**
+     * Register any events for your application.
+     */
+    public function boot(): void
+    {
+        //
+    }
+
+    /**
+     * Determine if events and listeners should be automatically discovered.
+     */
+    public function shouldDiscoverEvents(): bool
+    {
+        return false;
+    }
+}
+EOF
+
+# Create missing RouteServiceProvider
+cat > /var/www/moneroexchange/app/Providers/RouteServiceProvider.php << 'EOF'
+<?php
+
+namespace App\Providers;
+
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Route;
+
+class RouteServiceProvider extends ServiceProvider
+{
+    /**
+     * The path to your application's "home" route.
+     *
+     * Typically, users are redirected here after authentication.
+     *
+     * @var string
+     */
+    public const HOME = '/home';
+
+    /**
+     * Define your route model bindings, pattern filters, and other route configuration.
+     */
+    public function boot(): void
+    {
+        RateLimiter::for('api', function (Request $request) {
+            return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+        });
+
+        $this->routes(function () {
+            Route::middleware('api')
+                ->prefix('api')
+                ->group(base_path('routes/api.php'));
+
+            Route::middleware('web')
+                ->group(base_path('routes/web.php'));
+        });
+    }
+}
+EOF
+
+# Create missing BroadcastServiceProvider
+cat > /var/www/moneroexchange/app/Providers/BroadcastServiceProvider.php << 'EOF'
+<?php
+
+namespace App\Providers;
+
+use Illuminate\Support\Facades\Broadcast;
+use Illuminate\Support\ServiceProvider;
+
+class BroadcastServiceProvider extends ServiceProvider
+{
+    /**
+     * Bootstrap any application services.
+     */
+    public function boot(): void
+    {
+        Broadcast::routes();
+
+        require base_path('routes/channels.php');
+    }
+}
+EOF
+
+# Create missing BreezeServiceProvider
+cat > /var/www/moneroexchange/app/Providers/BreezeServiceProvider.php << 'EOF'
+<?php
+
+namespace App\Providers;
+
+use Illuminate\Support\ServiceProvider;
+
+class BreezeServiceProvider extends ServiceProvider
+{
+    /**
+     * Register services.
+     */
+    public function register(): void
+    {
+        //
+    }
+
+    /**
+     * Bootstrap services.
+     */
+    public function boot(): void
+    {
+        //
+    }
+}
+EOF
+
+# Fix Composer cache permissions
+mkdir -p /var/www/.cache/composer
+chown -R www-data:www-data /var/www/.cache
+chmod -R 755 /var/www/.cache
+
 # Install dependencies
 print_status "Installing Composer dependencies for Laravel 11..."
 cd /var/www/moneroexchange
@@ -490,9 +708,15 @@ EOF
 print_status "Creating .env file from .env.example..."
 cp .env.example .env
 
+# Fix Str class issue in session.php
+if [ -f config/session.php ]; then
+    sed -i 's/Str::random(40)/\x27\x27 . bin2hex(random_bytes(20))/g' config/session.php
+    print_status "✅ Str class issue fixed"
+fi
+
 # Generate key and run migrations
 print_status "Generating application key..."
-sudo -u www-data php artisan key:generate
+sudo -u www-data php artisan key:generate --force
 if [ $? -ne 0 ]; then
     print_error "Failed to generate application key"
     exit 1
@@ -550,7 +774,7 @@ chmod -R 775 /var/www/moneroexchange/public/uploads
 chmod 600 /var/www/moneroexchange/.env
 chown www-data:www-data /var/www/moneroexchange/.env
 
-print_status "Laravel 11 application fully deployed with proper structure and permissions"
+print_status "✅ Laravel 11 application fully deployed with proper structure and permissions"
 
 # Step 8: Install Monero
 print_info "Step 8: Installing Monero..."
@@ -667,7 +891,7 @@ systemctl enable monerod
 systemctl start monero-wallet-rpc
 systemctl enable monero-wallet-rpc
 
-print_status "Monero installed and configured"
+print_status "✅ Monero installed and configured"
 
 # Step 9: Final verification
 print_info "Step 9: Final verification..."
@@ -715,14 +939,14 @@ else
 fi
 
 # Test database connection
-if sudo -u www-data php artisan tinker --execute="echo DB::connection()->getPdo() ? 'DB OK' : 'DB FAIL';" 2>/dev/null | grep -q "DB OK"; then
+if sudo -u www-data php artisan tinker --execute="echo 'DB Test: ' . (DB::connection()->getPdo() ? 'OK' : 'FAIL');" 2>/dev/null | grep -q "DB Test: OK"; then
     print_status "✅ Database connection working"
 else
     print_error "❌ Database connection failed"
 fi
 
 # Test Redis connection
-if sudo -u www-data php artisan tinker --execute="echo Redis::ping() ? 'Redis OK' : 'Redis FAIL';" 2>/dev/null | grep -q "Redis OK"; then
+if sudo -u www-data php artisan tinker --execute="echo 'Redis Test: ' . (Redis::ping() ? 'OK' : 'FAIL');" 2>/dev/null | grep -q "Redis Test: OK"; then
     print_status "✅ Redis connection working"
 else
     print_error "❌ Redis connection failed"
@@ -730,7 +954,7 @@ fi
 
 echo ""
 echo "=================================================="
-print_status "LARAVEL 11 INSTALLATION COMPLETE!"
+print_status "INSTALLATION COMPLETE!"
 echo "=================================================="
 
 print_status "✅ Complete Monero Exchange with Laravel 11 installed successfully!"
@@ -739,6 +963,8 @@ print_status "✅ Laravel 11 application deployed"
 print_status "✅ Database configured"
 print_status "✅ Web interface working"
 print_status "✅ NO rate limiting conflicts!"
+print_status "✅ All missing providers created!"
+print_status "✅ Cache folders created!"
 
 echo ""
 print_info "Your Monero Exchange (Laravel 11) is ready at: http://127.0.0.1"
@@ -747,4 +973,4 @@ print_info "Login: http://127.0.0.1/login"
 print_info "Register: http://127.0.0.1/register"
 
 echo ""
-print_status "🎉 Laravel 11 installation completed successfully!"
+print_status "🎉 Installation completed successfully!"
